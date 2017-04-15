@@ -21,10 +21,30 @@ var handleError = (err) => {
 
 export default {
 	getData() {
+		request.method = 'GET'
 		request.params = {
 			'TableName': 'posneg'
 		}
 		return Vue.axios.request(request).then((response) =>{
+			return response.data.Items
+		}).catch(err => {
+			handleError(err)
+		});
+	},
+	sendData(d) {
+			// user: "9171d969-b5bb-93fd-21d9-f29d073d8fed",
+			// time: 1492215656479,
+			// geo: [43.34243,-121.23423]
+			// value: 0
+
+		request.params = {}
+		request.method = 'POST'
+		console.log(d)
+		return Vue.axios.request({
+			TableName: 'posneg',
+			Item: d
+		}).then((response) =>{
+			console.log(d)
 			return response.data.Items
 		}).catch(err => {
 			handleError(err)

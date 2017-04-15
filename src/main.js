@@ -5,15 +5,15 @@ import App from './App'
 import router from './router'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import * as VueGoogleMaps from 'vue2-google-maps';
+// import * as VueGoogleMaps from 'vue2-google-maps';
 
-Vue.use(VueGoogleMaps, {
-load: {
-  key: 'AIzaSyBZxaYnVIj-L0rSw3us_ICOYO5Lr05c6Zs'
-  // v: 'OPTIONAL VERSION NUMBER',
-  // libraries: 'places', //// If you need to use place input 
-}
-});
+// Vue.use(VueGoogleMaps, {
+// load: {
+//   key: 'AIzaSyBZxaYnVIj-L0rSw3us_ICOYO5Lr05c6Zs'
+//   // v: 'OPTIONAL VERSION NUMBER',
+//   // libraries: 'places', //// If you need to use place input 
+// }
+// });
 
 Vue.config.productionTip = false
 Vue.use(VueAxios, axios)

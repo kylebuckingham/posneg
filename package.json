@@ -13,7 +13,10 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
+    "@turf/turf": "^4.1.0",
     "axios": "^0.16.1",
+    "mapbox-gl": "^0.35.0",
+    "mint-ui": "^2.2.3",
     "vue": "^2.2.2",
     "vue-axios": "^2.0.1",
     "vue-router": "^2.2.0",
