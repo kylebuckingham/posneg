@@ -1,5 +1,5 @@
 <style lang='scss' scoped>
-  // COLORS
+
   $control-buttons-l: #b30707;
   $control-buttons-r: #0ea541;
 
@@ -12,8 +12,10 @@
   }
 
   .math {
+    transition: all 0.5s ease;
     position: absolute;
-    top: 25%;
+    top: 0;
+    bottom: 0;
     height: auto;
     font-size: 725%;
     color: rgba(44, 62, 80, 1);
@@ -21,43 +23,36 @@
   }
 
   #neg {
-    left: 25%;
     background: $control-buttons-l;
-    width: 1.5em;
-    height: 1.5em;
-    border-radius: 50%;
-    margin: .25em; // border-top: .05em solid lighten($control-buttons-l, 40%);
-    border-bottom: .05em solid darken($control-buttons-l, 20%);
+    left: 0;
+    right: 50%;
     &:hover,
     &:active {
       color: #fff;
       background: lighten($control-buttons-l, 5%);
     }
-    .label {
-      width: 300px;
-      height: 300px;
-      bottom: -3em;
+    &.clicked {
+      right: 100%;
     }
   }
 
   #pos {
-    right: 25%;
+    right: 0;
+    left: 50%;
     background: $control-buttons-r;
-    width: 1.5em;
-    height: 1.5em;
-    border-radius: 50%;
-    margin: .25em; // border-top: .05em solid lighten($control-buttons-r, 40%);
-    border-bottom: .05em solid darken($control-buttons-r, 20%);
     &:hover,
     &:active {
       background: lighten($control-buttons-r, 5%);
       color: #fff;
     }
-    .label {
-      bottom: -3em;
+    &.clicked {
+      left: 100%;
     }
   }
 
+  .mapboxgl-ctrl-logo {
+    display: none;
+  }
 
   #map {
     text-align: left;
@@ -69,29 +64,14 @@
     width: 100%;
   }
 
-  // @media (max-width:1080px){
-  //   #pos {
-  //     right: 50%;
-  //     left: 50%;
-  //     top: 25%;
-  //     bottom: 75%;
-  //   }
-  //   #neg {
-  //     right: 50%;
-  //     left: 50%;
-  //     top: 75%;
-  //     bottom: 25%;
-  //   }
-  // }
 </style>
 
 <template>
 
   <div class='main'>
     <div id='map'></div>
-    <div id='neg' class='math' v-on:click='storeEvent(0)'><span class='label'>-</span></div>
-    <div id='pos' class='math' v-on:click='storeEvent(1)'><span class='label'>+</span></div>
-
+    <div id='neg' v-bind:class="{'clicked': clicked}" class='math' v-on:click='storeEvent(0)'></div>
+    <div id='pos' v-bind:class="{'clicked': clicked}" class='math' v-on:click='storeEvent(1)'></div>
   </div>
 
 </template>
@@ -105,12 +85,13 @@
     data () {
       return {
         geo: [],
-        exp: new Date().getTime()
+        exp: new Date().getTime(),
+        clicked: false,
+        map: {}
       }
     },
     mounted () {
-      var self = this
-      self.createMap()
+      this.createMap()
     },
     methods: {
       getUser: function () {
@@ -134,7 +115,9 @@
         }
       },
       storeEvent: function (val) {
+
         var s = this
+        s.clicked = true
         s.getLocation(function (geo) {
           resources.sendData({
             id: s.guid(),
@@ -143,6 +126,8 @@
             geo: geo,
             value: val
           })
+          s.map.panTo([geo[1], geo[0]]);
+          s.addDataToMap()
         })
       },
       guid: function () {
@@ -173,46 +158,52 @@
       createMap: function () {
         mapboxgl.accessToken = 'pk.eyJ1IjoiYnVja2lua2IiLCJhIjoiY2oxZDU3Mm9wMDBlYjMxbXB4Y2t4am5mbyJ9.gl_2wlSPKP9K9AqFLpQsGQ'
 
-        var self = this
-        var map = self.map
-
-        console.log(mapboxgl)
-
+        var s = this
         // init the map
-        // map = new mapboxgl.Map({
-        //   container: 'map',
-        //   style: 'mapbox://styles/mapbox/light-v9',
-        //   minzoom: 1.3,
-        //   center: [-122.3317778, 47.6357572], // Seattle
-        //   zoom: 13
-        // })
-
-        // resources.getData().then(function (d) {
-        //   map.on('load', function (e) {
-        //     var data = self.JSONtoGeo(d)
-
-        //     for (var i in data) {
-        //       map.addLayer({
-        //         'id': 'points' + i,
-        //         'type': 'circle',
-        //         'source': {
-        //           'type': 'geojson',
-        //           'data': {
-        //             'type': 'FeatureCollection',
-        //             'features': data[i]
-        //           }
-        //         },
-        //         'layout': {
-        //           'visibility': 'visible'
-        //         },
-        //         'paint': {
-        //           'circle-radius': 8,
-        //           'circle-color': Number(i) > 0 ? '#0ea541' : '#b30707'
-        //         }
-        //       })
-        //     }
-        //   })
-        // })
+        s.map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/light-v9',
+          minzoom: 1.3,
+          center: [-122.3317778, 47.6357572], // Seattle
+          zoom: 13
+        })
+        s.map.on('load', function (e) {
+          s.addDataToMap()
+        })
+      },
+      addDataToMap: function () {
+        var s = this
+        resources.getData().then(function (d) {
+          var data = s.JSONtoGeo(d)
+          for (var i in data) {
+            var layer = s.map.getLayer('points' + i)
+            if (!layer){
+              s.map.addLayer({
+                'id': 'points' + i,
+                'type': 'circle',
+                'source': {
+                  'type': 'geojson',
+                  'data': {
+                    'type': 'FeatureCollection',
+                    'features': data[i]
+                  }
+                },
+                'layout': {
+                  'visibility': 'visible'
+                },
+                'paint': {
+                  'circle-radius': 8,
+                  'circle-color': Number(i) > 0 ? '#0ea541' : '#b30707'
+                }
+              })
+            } else {
+              s.map.getSource('points' + i).setData({
+                'type': 'FeatureCollection',
+                'features': data[i]
+              })
+            }
+          }
+        })
       }
     }
   }
