@@ -11,7 +11,7 @@ import VueAxios from 'vue-axios'
 // load: {
 //   key: 'AIzaSyBZxaYnVIj-L0rSw3us_ICOYO5Lr05c6Zs'
 //   // v: 'OPTIONAL VERSION NUMBER',
-//   // libraries: 'places', //// If you need to use place input 
+//   // libraries: 'places', //// If you need to use place input
 // }
 // });
 
